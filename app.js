@@ -1,11 +1,12 @@
 import { renderProductView } from './product.js';
 import { renderKatalkView } from './katalk.js';
-import { renderSettingsView } from './settings.js';
+import { renderOpenChatView } from './openchat.js'; 
 
-// 🎯 구글 파이어베이스 주소 설정 (질문자님의 진짜 Key 데이터 구조를 그대로 유지하세요!)
+// 🎯 [최적화] 기존에 불필요하게 자리를 차지하던 settings.js 임포트 구문을 완전히 삭제했습니다.
+
 const firebaseConfig = {
   apiKey: "AIzaSyDWMoeASRf3LXY0gMhs2DXQ1sk-6ZGtSZA",
-  authDomain: "rpt-count.firebaseapp.com",
+  authDomain: "://firebaseapp.com",
   projectId: "rpt-count",
   storageBucket: "rpt-count.firebasestorage.app",
   messagingSenderId: "40155260698",
@@ -13,12 +14,8 @@ const firebaseConfig = {
   measurementId: "G-610J4FSRRJ"
 };
 
-
-
-// 🎯 앱 전체에서 공유할 글로벌 데이터베이스 인스턴스 (초기값 null 안전 잠금)
 export let db = null;
 
-// 파이어베이스 엔진이 브라우저에 착륙할 때까지 안전하게 대기 서칭하는 엔진
 function startSystemEngine() {
     if (window.firebase) {
         try {
@@ -26,36 +23,65 @@ function startSystemEngine() {
             db = window.firebase.firestore();
             console.log("구글 클라우드 데이터 창고가 연결되었습니다.");
         } catch (e) {
-            console.warn("구글 클라우드 인증 실패: 로컬 독립 모드로 자동 강제 전환되었습니다.");
+            console.warn("구글 클라우드 인증 실패: 로컬 독립 모드로 전환.");
         }
     } else {
-        console.warn("파이어베이스 라이브러리가 확인되지 않아 안전 로컬 모드로 준비합니다.");
+        console.warn("파이어베이스 라이브러리 미확인: 로컬 모드 준비.");
     }
     
-    // 🎯 [핵심 보정] 클라우드가 연결되든 실패하든, 메뉴 작동을 위해 무조건 첫 화면을 그려 마비를 차단합니다!
     renderProductView();
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const menuProduct = document.getElementById('menu-product');
     const menuKatalk = document.getElementById('menu-katalk');
-    const menuSettings = document.getElementById('menu-settings');
+    const menuOpenChat = document.getElementById('menu-openchat');
+    const menuCalc = document.getElementById('menu-calc');
+    // 🎯 [최적화] 설정 버튼(menuSettings) 관련 변수 선언을 완벽하게 제거했습니다.
+    const allBtns = [menuProduct, menuKatalk, menuOpenChat, menuCalc];
 
-    // 🎯 [핵심 보정] 데이터 로드가 덜 되었더라도 메뉴 전환 버튼 클릭은 무조건 선행 작동하도록 분리 보정
+    // 사이드바 블루 활성화 하이라이트 제어 장치
     function switchMenu(activeBtn, renderFn) {
-        document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-        activeBtn.classList.add('active');
+        allBtns.forEach(btn => { if(btn) btn.classList.remove('active'); });
+        if(activeBtn) activeBtn.classList.add('active');
         renderFn();
     }
 
+    // 1. 📦 상품 안내 버튼 이벤트
     if (menuProduct) menuProduct.addEventListener('click', () => switchMenu(menuProduct, renderProductView));
-    if (menuKatalk) menuKatalk.addEventListener('click', () => switchMenu(menuKatalk, renderKatalkView));
-    if (menuSettings) menuSettings.addEventListener('click', () => switchMenu(menuSettings, renderSettingsView));
+    
+    // 2. 💬 카톡 안내 버튼 이벤트
+    if (menuKatalk) {
+        menuKatalk.addEventListener('click', () => {
+            localStorage.setItem('katalk_main_tab', 'katalk');
+            switchMenu(menuKatalk, renderKatalkView);
+        });
+    }
 
-    // 파이어베이스 로딩 상태 체크 엔진 안전 점화
+    // 3. 💛 오픈채팅방 관리 버튼 이벤트
+    if (menuOpenChat) {
+        menuOpenChat.addEventListener('click', () => {
+            localStorage.setItem('katalk_main_tab', 'openchat');
+            switchMenu(menuOpenChat, renderOpenChatView);
+        });
+    }
+
+    // 4. 🧮 계산기 기능 버튼 이벤트
+    if (menuCalc) {
+        menuCalc.addEventListener('click', () => {
+            localStorage.setItem('katalk_main_tab', 'calc');
+            switchMenu(menuCalc, renderKatalkView);
+        });
+    }
+
+    // 🎯 [최적화] 기존에 설정 버튼을 감시하던 설정 클릭 이벤트 핸들러를 완전히 전면 삭제했습니다.
+
+    // 시스템 엔진 가동
     setTimeout(startSystemEngine, 100);
 });
 
+// 공용 팝업 모달창 제어 인프라
 export function openModal(htmlContent) {
     const modal = document.getElementById('global-modal');
     if(modal) { modal.innerHTML = htmlContent; modal.style.display = 'flex'; }

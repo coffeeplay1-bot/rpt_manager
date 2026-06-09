@@ -4,93 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>여행 안내 종합 매니저 (실시간 공유방)</title>
-    <style>
-        :root { --sidebar-color: #1E293B; --primary-color: #4A90E2; --bg-color: #F8FAFC; --text-main: #334155; --card-color: #FFFFFF; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', sans-serif; }
-        body { display: flex; height: 100vh; background-color: var(--bg-color); color: var(--text-main); overflow: hidden; }
-        
-        .sidebar { width: 240px; background-color: var(--sidebar-color); color: white; padding: 20px; display: flex; flex-direction: column; gap: 25px; flex-shrink: 0; }
-        .sidebar h2 { font-size: 18px; text-align: center; padding-bottom: 15px; border-bottom: 1px solid #334155; }
-        .menu-group { display: flex; flex-direction: column; gap: 10px; }
-        .menu-btn { width: 100%; padding: 14px; text-align: left; background: none; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; color: #94A3B8; cursor: pointer; transition: 0.2s; }
-        .menu-btn:hover { background-color: #334155; color: white; }
-        .menu-btn.active { background-color: var(--primary-color); color: white; }
-        
-        .main-container { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
-        .layout-wrapper { display: flex; gap: 25px; align-items: flex-start; width: 100%; box-sizing: border-box; }
-        .left-area { flex: 1; min-width: 0; }
-        
-        .simulator { width: 500px; height: 550px; background: #FFFFFF; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; display: flex; flex-direction: column; overflow: hidden; position: sticky; top: 10px; flex-shrink: 0; }
-        .sim-header { padding: 15px; font-weight: bold; border-bottom: 1px solid #F1F5F9; font-size: 14px; text-align: center; }
-        .sim-body { flex: 1; background: #F8FAFC; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .footer-mock { background: #FFFFFF; padding: 12px; border-top: 1px solid #F1F5F9; display: flex; gap: 8px; align-items: center; }
-        .input-mock { flex: 1; background: #F1F5F9; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #94A3B8; }
-        .send-mock { font-size: 16px; font-weight: bold; }
-        
-        .tab-row, .filter-row { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
-        
-        .sub-tab, .filter-btn { 
-            padding: 10px 22px !important; border: 1px solid transparent !important; border-radius: 24px !important; 
-            cursor: pointer !important; font-size: 13px !important; font-weight: bold !important; color: #475569 !important; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important; display: inline-flex !important; align-items: center !important; 
-            gap: 6px !important; white-space: nowrap !important; transition: all 0.2s !important; 
-        }
-        .sub-tab:hover, .filter-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.08); color: #1E293B; }
-        .sub-tab.active, .filter-btn.active { border-color: #64748B !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 0 0 1px #64748B !important; color: #0F172A !important; font-weight: 800 !important; }
-        .tab-del-btn { color: #94A3B8; font-size: 11px; font-weight: bold; cursor: pointer; margin-left: 2px; }
-        
-        .add-filter-action-btn { padding: 10px 22px; background-color: #ECEFF1; border: 1px dashed #B0BEC5; border-radius: 24px; font-size: 13px; font-weight: bold; color: #546E7A; cursor: pointer; }
-        .add-filter-action-btn:hover { background-color: #CFD8DC; color: #37474F; border-style: solid; }
-
-        .action-row { display: flex; justify-content: flex-end; margin-bottom: 15px; }
-        .main-btn { padding: 10px 16px; background: #10B981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .msg-box-list, .msg-grid { display: flex; flex-direction: column; gap: 14px; }
-        
-        .msg-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.03); max-width: 100%; cursor: pointer; box-sizing: border-box; }
-        .msg-box.selected-target { border-color: #4AA0E6; box-shadow: 0 0 0 2px rgba(74,160,230,0.15); }
-        .window-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #E2E8F0; margin-bottom: 10px; }
-        .window-title-area { display: flex; align-items: center; gap: 8px; }
-        .window-close-x { background: none; border: none; color: #94A3B8; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 4px; }
-        .bottom-actions { display: flex; justify-content: flex-start; margin-top: 12px; }
-        .icon-copy-btn { background: #E1F0FF; color: #4A90E2; border: 1px solid #B3D7FF; padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        
-        @font-face { font-family: 'Pretendard Variable'; font-style: normal; font-display: swap; font-weight: 45 920; src: local('Pretendard Variable'), local('Pretendard'), sans-serif; }
-        .mrt-bubble-right { align-self: flex-end; display: block !important; padding: 9px 12px 7px 12px !important; width: max-content !important; max-width: 427.469px !important; font-family: 'Pretendard Variable', sans-serif; font-size: 15px !important; font-weight: 400; line-height: 20px !important; letter-spacing: -0.3px; box-sizing: content-box !important; word-break: break-all !important; white-space: pre-wrap !important; background: #4AA0E6; color: #FFFFFF; border-radius: 12px 12px 0 12px; box-shadow: 0 1px 3px rgba(74,160,230,0.15); }
-        
-        .kakao-bubble-right { align-self: flex-end; display: block !important; padding: 8px 11px 7px 11px !important; width: max-content !important; max-width: 240px !important; word-break: break-all !important; white-space: pre-wrap !important; line-height: 1.45 !important; font-size: 13.5px !important; font-family: 'Malgun Gothic', sans-serif; background: #FEE500; color: #191919; border-radius: 10px 0 10px 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); box-sizing: content-box !important; }
-        
-        .split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .column-container { display: flex; flex-direction: column; gap: 14px; }
-        .column-header { font-size: 15px; font-weight: bold; color: #1E293B; padding-bottom: 6px; border-bottom: 2px solid #CBD5E1; margin-bottom: 5px; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #FFFFFF; padding: 28px; border-radius: 16px; width: 440px; position: relative; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); border: 1px solid #E2E8F0; }
-        .modal-content h3 { font-size: 18px; font-weight: bold; color: #0F172A; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid #F1F5F9; }
-        .modal-content label { display: block; font-size: 12.5px; font-weight: bold; color: #475569; margin-bottom: 5px; margin-top: 12px; }
-        .modal-content input[type="text"], .modal-content select, .modal-content textarea { width: 100% !important; padding: 11px 14px !important; margin-bottom: 4px !important; border: 1px solid #CBD5E1 !important; border-radius: 8px !important; font-size: 14px !important; color: #1E293B !important; background-color: #F8FAFC !important; transition: all 0.2s !important; }
-        .modal-content input[type="text"]:focus, .modal-content select:focus, .modal-content textarea:focus { outline: none !important; border-color: #4A90E2 !important; background-color: #FFFFFF !important; box-shadow: 0 0 0 3px rgba(74,144,226,0.15) !important; }
-        .modal-content textarea { height: 130px !important; resize: none !important; line-height: 1.5 !important; }
-        .modal-close { position: absolute; top: 22px; right: 24px; cursor: pointer; font-size: 18px; color: #94A3B8; border: none; background: none; }
-        .modal-close:hover { color: #EF4444; }
-        .modal-submit { width: 100% !important; padding: 13px !important; background: #4A90E2 !important; color: white !important; border: none !important; border-radius: 8px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; margin-top: 20px !important; }
-    </style>
+    <!-- 외부 보관 중인 스타일시트 링크 정식 연결 -->
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+
+    <!-- 🎯 [최적화] 설정 버튼이 제거된 정갈한 왼쪽 사이드바 메뉴 대지 -->
     <div class="sidebar">
         <h2>✈️ 공동 관리 시스템</h2>
         <div class="menu-group">
-            <button id="menu-product" class="menu-btn active">📦 상품 안내</button>
+            <button id="menu-product" class="menu-btn">📦 상품 안내</button>
             <button id="menu-katalk" class="menu-btn">💬 카톡 안내</button>
-            <button id="menu-settings" class="menu-btn">⚙️ 설정</button>
+            <button id="menu-openchat" class="menu-btn">💛 오픈채팅방 관리</button>
+            <button id="menu-calc" class="menu-btn">🧮 계산기 기능</button>
         </div>
     </div>
+    
+    <!-- 우측 메인 콘텐츠 공간 -->
     <div class="main-container" id="content-area"></div>
     <div id="global-modal" class="modal"></div>
 
-    <!-- 🎯 [404 에러 타격해결] 점 기호(./)를 덧붙여 내 폴더 인식을 100% 물리력 고정 시킵니다 -->
+    <!-- 호스팅 및 원격 데이터베이스 연결 인프라 -->
     <script src="./firebase-app-compat.js"></script>
     <script src="./firebase-firestore-compat.js"></script>
-
+    
+    <!-- 모든 스크립트 제어 권한을 캡슐화된 app.js 단 한 곳으로만 넘겨 중복 충돌을 원천 차단합니다 -->
     <script type="module" src="./app.js"></script>
+
 </body>
 </html>
